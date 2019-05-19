@@ -71,7 +71,7 @@ def lambda_handler(event, context):
                 print("loginOK")
                 line_roomid = record["dynamodb"]["NewImage"]["line_rid"]["S"]
                 try:
-                    line_bot_api.push_message(line_roomid, TextSendMessage(text='ログイン出来るで。'))
+                    line_bot_api.push_message(line_roomid, TextSendMessage(text='ば、爆発しちゃうっっ！！（意訳：ログイン可能になりました'))
                     return ok_json
                 except LineBotApiError as e:
                     logger.error("Got exception from LINE Messaging API: %s\n" % e.message)
