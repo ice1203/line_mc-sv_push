@@ -64,22 +64,27 @@ def lambda_handler(event, context):
                   "body": "Error"}
     #print(event["Records"])
     for record in event["Records"]:
-        new_stat = record["dynamodb"]["NewImage"]["service_stat"]["S"]
-        old_stat = record["dynamodb"]["OldImage"]["service_stat"]["S"]
-        if not old_stat == new_stat and 'サービス中（ログイン可）' in new_stat:
-            print("loginOK")
-            line_roomid = record["dynamodb"]["NewImage"]["line_rid"]["S"]
-            try:
-                line_bot_api.push_message(line_roomid, TextSendMessage(text='ログイン出来るで。'))
+        try:
+            new_stat = record["dynamodb"]["NewImage"]["service_stat"]["S"]
+            old_stat = record["dynamodb"]["OldImage"]["service_stat"]["S"]
+            if not old_stat == new_stat and 'サービス中（ログイン可）' in new_stat:
+                print("loginOK")
+                line_roomid = record["dynamodb"]["NewImage"]["line_rid"]["S"]
+                try:
+                    line_bot_api.push_message(line_roomid, TextSendMessage(text='ログイン出来るで。'))
+                    return ok_json
+                except LineBotApiError as e:
+                    logger.error("Got exception from LINE Messaging API: %s\n" % e.message)
+                    for m in e.error.details:
+                        logger.error("  %s: %s" % (m.property, m.message))
+                    return error_json
+                except InvalidSignatureError:
+                    return error_json
+            else:
                 return ok_json
-            except LineBotApiError as e:
-                logger.error("Got exception from LINE Messaging API: %s\n" % e.message)
-                for m in e.error.details:
-                    logger.error("  %s: %s" % (m.property, m.message))
-                return error_json
-            except InvalidSignatureError:
-                return error_json
-        else:
-            return ok_json
+        except KeyError as e:
+            print('I got a KeyError')
+        except IndexError as e:
+            print('I got an IndexError')
 
     return ok_json
